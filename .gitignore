@@ -1,0 +1,57 @@
+# =============================================================================
+# SAFETY FIRST — this repository must contain ONLY R code.
+# The MAHAN / Melghat cohort data are sensitive (young children; household
+# geolocation) and must NEVER be committed. This file blocks everything by
+# default and re-allows only source code and documentation.
+# =============================================================================
+
+# 1) Block everything
+*
+
+# 2) Allow git to descend into directories
+!*/
+
+# 3) Re-allow ONLY code and docs
+!*.R
+!README.md
+!.gitignore
+!LICENSE
+
+# 4) Belt-and-suspenders: explicitly block data / output / binary formats
+#    (in case a file is ever placed at the repo root)
+*.csv
+*.tsv
+*.dta
+*.sav
+*.rds
+*.RData
+*.rda
+*.tif
+*.tiff
+*.nc
+*.grd
+*.shp
+*.dbf
+*.shx
+*.prj
+*.gpkg
+*.geojson
+*.kml
+*.xlsx
+*.xls
+*.docx
+*.pdf
+*.html
+*.png
+*.jpg
+*.jpeg
+*_gpsdata*
+output/
+**/output/
+data/
+Data/
+accessibility/
+GISproject/
+.DS_Store
+.Rhistory
+.RData
