@@ -14,16 +14,22 @@
 if (!exists("hdr")) source("00_setup.R")
 if (!exists("ari") || !"sev_vs" %in% names(ari)) source("03_derive_and_merge.R")
 
+ACCESS_DIR <- Sys.getenv("RSV_ACCESS_DIR",
+  "/Users/priyanka/Downloads/RSV_India/Access_to_care_paper/accessibility")
+GIS <- Sys.getenv("RSV_GIS_DIR",
+  "/Users/priyanka/Downloads/RSV_India/GISproject/GISProject/")
+hh_path <- file.path(GIS, "capstone project Mattie/critical_data_gpsdata.csv")
+
+## Genuinely degrade gracefully: skip (with a message) rather than crash
+## run_all.R when terra or the restricted household-GPS file is unavailable,
+## so the non-spatial pipeline is reproducible without the GIS assets.
 if (!requireNamespace("terra", quietly = TRUE)) {
   message("19: package 'terra' not installed — skipping. Run install.packages('terra').")
+} else if (!file.exists(hh_path)) {
+  message("19: household GPS file not found (", hh_path,
+          ") — skipping the travel-time extraction. Set RSV_GIS_DIR to enable.")
 } else {
   suppressPackageStartupMessages(library(terra))
-
-  ACCESS_DIR <- Sys.getenv("RSV_ACCESS_DIR",
-    "/Users/priyanka/Downloads/RSV_India/Access_to_care_paper/accessibility")
-  GIS <- Sys.getenv("RSV_GIS_DIR",
-    "/Users/priyanka/Downloads/RSV_India/GISproject/GISProject/")
-  hh_path <- file.path(GIS, "capstone project Mattie/critical_data_gpsdata.csv")
 
   ## ---- village centroids (median household GPS), identical to the maps -------
   inbox <- function(d) d[!is.na(d$latitude) & !is.na(d$longitude) &

@@ -34,6 +34,11 @@ cat("\nApparent preterm fraction among children with GA:\n")
 print(round(prop.table(table(dem$preterm)), 3))
 
 ## ---- 3.3 merge child gestational age onto episodes -------------------------
+## SAFETY: the joins below assume one demographics row per child. A duplicated
+## uid would silently duplicate episodes in the left_join and distort every
+## downstream count, so fail loudly instead.
+stopifnot("dem$uid must be unique (one row per child)" =
+            !anyDuplicated(dem$uid))
 ari <- ari %>% left_join(dem %>% select(uid, preterm, gest_age_wk_clean),
                          by = "uid")
 hdr("03.2 — MERGE: episodes <- child gestational age (by uid)")
@@ -58,6 +63,11 @@ vil <- read_dta(VIL_PATH) %>%
     bus_stand_dist_km = suppressWarnings(as.numeric(bus_stand_dist_km)),
     bus_yes = as.integer(startsWith(as.character(bus_village), "1"))
   )
+
+## SAFETY: one survey row per village; a duplicated vcode would duplicate
+## episodes/deaths in every village-level left_join downstream.
+stopifnot("vil$vcode must be unique (one row per village)" =
+            !anyDuplicated(vil$vcode))
 
 hdr("03.3 — MERGE: village-level survey (numeric village-code prefix)")
 merge2 <- tibble(

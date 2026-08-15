@@ -59,6 +59,11 @@ if (!requireNamespace("lme4", quietly = TRUE) || !file.exists(tt_path) || !file.
               data = sv, family = binomial, control = ctrl)
   cat("N =", nobs(mP), "episodes from", ngrps(mP)["uid"], "children in",
       ngrps(mP)["vcode"], "villages.\n")
+  ## convergence / singularity diagnostics for the reproducibility record
+  cat(sprintf("Diagnostics: singular fit = %s | max|gradient| = %.2e | events = %d\n",
+              lme4::isSingular(mP),
+              max(abs(mP@optinfo$derivs$gradient)),
+              sum(model.frame(mP)$reached_facility == 1)))
   print(as.data.frame(show(mP, "motorized|monsoon|sexr|wealth|mother")), row.names = FALSE)
   cat("\nRandom-effect variances (village, child):\n")
   print(as.data.frame(VarCorr(mP))[, c("grp", "vcov")])
@@ -74,6 +79,10 @@ if (!requireNamespace("lme4", quietly = TRUE) || !file.exists(tt_path) || !file.
                 mother_edu + access_barrier_z + monsoon + (1 | vcode) + (1 | uid),
               data = sv51, family = binomial, control = ctrl)
   cat("N =", nobs(mS), "episodes in", ngrps(mS)["vcode"], "villages.\n")
+  cat(sprintf("Diagnostics: singular fit = %s | max|gradient| = %.2e | events = %d\n",
+              lme4::isSingular(mS),
+              max(abs(mS@optinfo$derivs$gradient)),
+              sum(model.frame(mS)$reached_facility == 1)))
   print(as.data.frame(show(mS, "access_barrier|monsoon|sexr|wealth")), row.names = FALSE)
   write_csv(broom.mixed::tidy(mS, effects = "fixed", exponentiate = TRUE, conf.int = TRUE),
             file.path(OUT_DIR, "22_sensitivity_composite_51.csv"))

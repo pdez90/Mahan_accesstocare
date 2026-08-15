@@ -176,12 +176,15 @@ screen_one <- function(v) {
               OR = round(estimate, 3), conf.low = round(conf.low, 3),
               conf.high = round(conf.high, 3), p.value = signif(p.value, 3), n = nobs(m))
 }
-hdr("24(3) — ACCESS SCREEN on drop-week-1 cohort (adjusted for age + sex)")
+hdr("24(3) — ACCESS SCREEN on drop-week-1 cohort (EXPLORATORY; adjusted for age + sex)")
 if (has_lme4) {
   scr <- bind_rows(lapply(screen_vars, screen_one))
+  ## multiple-testing control, as in script 12: BH false-discovery-rate
+  scr$q.value <- signif(p.adjust(scr$p.value, method = "BH"), 3)
   print(as.data.frame(scr), row.names = FALSE)
   write_csv(scr, file.path(OUT_DIR, "24_access_screen_drop_wk1.csv"))
-  cat("\nMeasures with p < 0.05:",
-      paste(scr$measure[!is.na(scr$p.value) & scr$p.value < 0.05], collapse = ", "),
+  cat("\nExploratory screen,", nrow(scr), "tests, Benjamini-Hochberg corrected.",
+      "\nMeasures with q < 0.05:",
+      paste(scr$measure[!is.na(scr$q.value) & scr$q.value < 0.05], collapse = ", "),
       "(none listed = no access measure predicts contact after removing births)\n")
 }

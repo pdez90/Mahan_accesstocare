@@ -71,6 +71,11 @@ freq <- function(df, v) {
 }
 
 ## Proportion "reached a facility", overall or by a grouping variable.
+## Explicit analysable denominator: n_total counts all episodes in the group;
+## n (the denominator for pct_reached) counts only episodes with a KNOWN
+## outcome, so a missing care location can never silently turn a whole
+## group's summary into NA, and numerator and denominator always refer to
+## the same episodes.
 reached_by <- function(df, group = NULL, lab = "Overall") {
   if (is.null(group)) {
     df <- df %>% mutate(.g = lab)
@@ -79,7 +84,9 @@ reached_by <- function(df, group = NULL, lab = "Overall") {
   }
   df %>%
     group_by(.g) %>%
-    summarise(n = n(), reached = sum(reached_facility),
+    summarise(n_total = n(),
+              n       = sum(!is.na(reached_facility)),
+              reached = sum(reached_facility == 1, na.rm = TRUE),
               pct_reached = round(100 * reached / n, 1), .groups = "drop") %>%
     rename(group = .g)
 }

@@ -14,11 +14,15 @@ sv <- ari %>% filter(sev_vs) %>%
   left_join(dem %>% select(uid, wealthscore_rural, quintile_rural), by = "uid") %>%
   filter(!is.na(wealthscore_rural), !is.na(reached_facility))
 
-## concentration index on a health variable h ranked by wealth score w
+## concentration index on a health variable h ranked by wealth score w.
+## Ties in w get their MIDRANK (ties.method = "average"): order()-based ranks
+## would assign different socioeconomic positions to observations with
+## identical wealth scores, arbitrarily by their position in the data, which
+## biases the covariance when the score is discretised. With midranks there
+## is no need to sort h at all.
 ci_fun <- function(h, w) {
-  o <- order(w); h <- h[o]
-  n <- length(h)
-  R  <- (seq_len(n) - 0.5) / n                 # fractional rank in wealth distribution
+  n  <- length(h)
+  R  <- (rank(w, ties.method = "average") - 0.5) / n  # fractional (mid)rank
   mu <- mean(h)
   cv <- sum((h - mu) * (R - mean(R))) / n      # population covariance
   c(C = 2 / mu * cv, E = 8 * cv, mu = mu)       # standard C and Erreygers E (binary range = 1)

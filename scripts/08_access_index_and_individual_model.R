@@ -2,11 +2,16 @@
 ## 08_access_index_and_individual_model.R
 ##
 ## (a) Builds a composite VILLAGE ACCESS-BARRIER INDEX from the transportation /
-##     distance variables in the village survey.
-## (b) Fits the PRIMARY individual-episode model for facility contact, adding
-##     household wealth, maternal education, and village access to age and sex,
-##     with nested random intercepts for village and child. This is far better
-##     powered than the village-level (ecological) regressions in script 07.
+##     distance variables in the village survey. NOTE: this is a PARTIAL index —
+##     rowMeans(na.rm = TRUE) over the available components, so villages with
+##     missing components contribute an index built from fewer inputs. Treat it
+##     as EXPLORATORY/descriptive; script 22 restricts the composite to the
+##     villages with all five components observed for the sensitivity analysis.
+## (b) Fits an individual-episode model for facility contact using this
+##     composite as the access term (far better powered than the village-level
+##     ecological regressions in script 07). This is the EARLIER/COMPOSITE
+##     SENSITIVITY model: the manuscript's PRIMARY model is script 22, which
+##     uses the complete Weiss/Malaria-Atlas motorized travel time instead.
 ##
 ## Requires lme4 (+ broom.mixed). Degrades gracefully if not installed.
 ## =============================================================================
@@ -80,7 +85,7 @@ cat("\nBy calendar month:\n"); print(o1_month)
 write_csv(o1_season, file.path(OUT_DIR, "08_facility_by_monsoon.csv"))
 write_csv(o1_month,  file.path(OUT_DIR, "08_facility_by_month.csv"))
 
-hdr("08(b) — INDIVIDUAL-EPISODE MODEL: facility contact ~ age + sex + wealth + maternal edu + village access + monsoon")
+hdr("08(b) — INDIVIDUAL-EPISODE MODEL (composite-index sensitivity; primary model = script 22): facility contact ~ age + sex + wealth + maternal edu + village access + monsoon")
 cat("Complete-case episodes:", sum(complete.cases(
   sv[, c("reached_facility","age_grp","sexr","wealth_q","mother_edu","access_barrier_z")])),
   "of", nrow(sv), "severe/very-severe episodes.\n\n")

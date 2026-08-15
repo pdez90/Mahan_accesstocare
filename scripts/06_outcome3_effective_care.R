@@ -5,12 +5,18 @@
 ## =============================================================================
 if (!exists("deaths") || !"vcode" %in% names(deaths)) source("03_derive_and_merge.R")
 
+## NA-safe outcome construction: each component is coerced to an explicit
+## TRUE/FALSE (missing -> FALSE for that component) and the number of deaths
+## with fully known inputs is reported, so a missing field can neither
+## propagate NA through the union nor silently inflate the numerator.
 deaths <- deaths %>%
   mutate(
-    on_way            = death_location == "on way",
-    hosp_death        = community_type == 0,
-    hosp_death_lt1d   = hosp_death & died_lt_1d == 1,
-    no_effective_care = (community_type == 1) | on_way | hosp_death_lt1d
+    on_way            = !is.na(death_location) & death_location == "on way",
+    hosp_death        = !is.na(community_type) & community_type == 0,
+    hosp_death_lt1d   = hosp_death & !is.na(died_lt_1d) & died_lt_1d == 1,
+    known_inputs      = !is.na(community_type) & !is.na(died_lt_1d),
+    no_effective_care = (!is.na(community_type) & community_type == 1) |
+                          on_way | hosp_death_lt1d
   )
 
 hdr("06 — OUTCOME 3: deaths beyond the reach of effective facility care")
@@ -21,14 +27,15 @@ cat("Analytic N:", nrow(deaths),
 o3 <- deaths %>%
   summarise(
     n_deaths                 = n(),
-    community                = sum(community_type == 1),
+    n_known_inputs           = sum(known_inputs),
+    community                = sum(community_type == 1, na.rm = TRUE),
     in_transit               = sum(on_way),
-    transit_not_already_comm = sum(on_way & community_type == 0),
+    transit_not_already_comm = sum(on_way & hosp_death),
     facility_within_24h      = sum(hosp_death_lt1d),
     union_no_care            = sum(no_effective_care),
     pct_union                = round(100 * union_no_care / n_deaths, 1),
-    died_within_1d_all       = sum(died_lt_1d == 1),
-    pct_died_within_1d       = round(100 * mean(died_lt_1d == 1), 1)
+    died_within_1d_all       = sum(died_lt_1d == 1, na.rm = TRUE),
+    pct_died_within_1d       = round(100 * died_within_1d_all / sum(!is.na(died_lt_1d)), 1)
   )
 print(o3)
 
